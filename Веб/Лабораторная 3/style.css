@@ -1,0 +1,25 @@
+body {
+    font-family: 'Times New Roman', Times, serif;
+    background: white;
+    padding: 20px;
+}
+
+#container2 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 20px;
+    border: 2px solid greenyellow;
+    border-radius: 5px;
+}
+
+#container2 > div {
+    background: greenyellow;
+    border-radius: 5px;
+    transition: transform 0.2s ease;
+    box-sizing: border-box;
+}
+
+#container2 > div:hover {
+    transform: scale(1.1);
+}
