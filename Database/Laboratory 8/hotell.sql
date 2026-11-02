@@ -1,5 +1,6 @@
--- Active: 1790276235061@@127.0.0.1@5432@hotal
-CREATE DATABASE hotal;
+-- Active: 1790276235061@@127.0.0.1@5432@hosss
+
+CREATE DATABASE hosss;
 
 CREATE TABLE Guests (
     guest_id SERIAL PRIMARY KEY,
@@ -12,12 +13,13 @@ CREATE TABLE Guests (
 CREATE TABLE Rooms (
     room_id SERIAL PRIMARY KEY,
     room_number VARCHAR(10),
-    room_type VARCHAR(50),
+    room_type VARCHAR(20) CHECK (room_type IN ('Эконом', 'Стандарт', 'Люкс')),
     floor INT,
-    price_per_night DECIMAL(10, 2),
+    price_per_night MONEY,
     capacity INT,
-    room_status VARCHAR(30)
+    room_status VARCHAR(30) CHECK (room_status IN ('Свободен', 'Занят'))
 );
+
 
 CREATE TABLE Staff (
     staff_id SERIAL PRIMARY KEY,
@@ -27,20 +29,23 @@ CREATE TABLE Staff (
     phone_number VARCHAR(20)
 );
 
+
 CREATE TABLE Services (
     service_id SERIAL PRIMARY KEY,
     service_name VARCHAR(100),
     service_category VARCHAR(50),
-    price DECIMAL(10, 2)
+    price MONEY
 );
+
 
 CREATE TABLE Inventory (
     item_id SERIAL PRIMARY KEY,
     item_name VARCHAR(100),
     category VARCHAR(50),
     quantity_in_stock INT,
-    unit_price DECIMAL(10, 2)
+    unit_price MONEY
 );
+
 
 CREATE TABLE Bookings (
     booking_id SERIAL PRIMARY KEY,
@@ -48,27 +53,29 @@ CREATE TABLE Bookings (
     room_id INT,
     check_in_date DATE,
     check_out_date DATE,
-    total_price DECIMAL(10, 2),
-    booking_status VARCHAR(30),
-    payment_status VARCHAR(30),
+    total_price MONEY,
+    booking_status VARCHAR(20) CHECK (booking_status IN ('Подтверждено', 'Ожидание')),
+    payment_status VARCHAR(30) CHECK (payment_status IN ('Оплачено', 'Предоплата', 'Ожидание')),
     number_of_guests INT,
     FOREIGN KEY (guest_id) REFERENCES Guests(guest_id),
     FOREIGN KEY (room_id) REFERENCES Rooms(room_id)
 );
+
 
 CREATE TABLE GuestServices (
     usage_id SERIAL PRIMARY KEY,
     guest_id INT,
     service_id INT,
     usage_date DATE,
+    price MONEY NOT NULL, 
     FOREIGN KEY (guest_id) REFERENCES Guests(guest_id),
     FOREIGN KEY (service_id) REFERENCES Services(service_id)
 );
 
-INSERT INTO GuestServices (guest_id, service_id, usage_date) VALUES
-(1, 1, '2026-06-02'),
-(1, 2, '2026-06-01'),
-(2, 3, '2026-06-11');
+INSERT INTO GuestServices (guest_id, service_id, usage_date, price) VALUES
+(1, 1, '2026-06-02', '3500.00'),
+(1, 2, '2026-06-01', '1500.00'),
+(2, 3, '2026-06-11', '2000.00');
 
 INSERT INTO Guests (full_name, email, phone_number, date_of_birth) VALUES
 ('Гадыев Ильвир', 'gadyev02@mail.ru', '+79224022512', '2008-04-07'),
@@ -110,16 +117,26 @@ JOIN Rooms r ON b.room_id = r.room_id;
 SELECT room_number, room_status 
 FROM Rooms;
 
---Имя и услуги которые они использовали
-SELECT 
-    g.full_name AS client_name, 
-    s.service_name, 
-    s.price, 
-    gs.usage_date
+--Исправил цены и их возможность на корректировки цен
+
+UPDATE Services 
+SET price = 5000.00 
+WHERE service_id = 1;
+
+UPDATE Services 
+SET price = 1200.00 
+WHERE service_id = 3;
+
+SELECT service_id, service_name, price AS current_price_in_catalog 
+FROM Services;
+
+SELECT gs.usage_id, g.full_name, s.service_name, gs.usage_date, gs.price AS price_paid_by_guest
 FROM GuestServices gs
 JOIN Guests g ON gs.guest_id = g.guest_id
 JOIN Services s ON gs.service_id = s.service_id;
 
-
-
+SELECT guest_id, SUM(price) AS total_spent_by_guest 
+FROM GuestServices 
+WHERE guest_id = 1 
+GROUP BY guest_id;
 
